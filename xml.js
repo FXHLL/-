@@ -10,7 +10,6 @@ export function xml_fn(option) {
   return new Promise((resolve, reject) => {
     let { method, url, params, dataType } = option
     let xhr = new XMLHttpRequest()
-    console.log('初始化的xhr', xhr)
     switch (method.toUpperCase()) {
       case 'GET':
         let dataUrl = params ? url + '?' + objToStr(params) : url
@@ -26,11 +25,12 @@ export function xml_fn(option) {
       default:
         alert('不想支持的方法')
     }
-    console.log('发送后的xhr', xhr)
     xhr.onreadystatechange = () => {
-      console.log('readyState变化时的xhr', xhr)
+      console.log(xhr)
       if (xhr.readyState === 4) {
         if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
+          let data
+          console.log(xhr)
           switch (dataType.toUpperCase()) {
             case 'JSON':
               data = JSON.parse(xhr.responseText)
