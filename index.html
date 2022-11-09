@@ -1,41 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>图片懒加载</title>
-</head>
-<body>
-    <div #container>
-        <div class="pic-div">
-            <div class="pic">
-                <img src="" title="占位图"/>
-            </div>
-        </div>
-    </div>
-</body>
-<script>
-    let arr = []
-    // 原理：监听图片资源的容器是否出现在视口中
-    // 监听事件：scroll，scroll事件可能会频繁触发，需要节流
-    // 判断方法：Element.getBoundingClientRect() 返回元素大小，相对视窗的位置信息[元素左上角和视窗左上角]
 
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片懒加载</title>
+</head>
+
+<body>
+  <div #container>
+    <div class="pic-div">
+      <div class="pic">
+        <img src="" title="占位图" />
+      </div>
+    </div>
+  </div>
+</body>
+<script type="module">
+  import { xml_fn } from './xml.js'
+  // 原理：监听图片资源的容器是否出现在视口中
+  // 监听事件：scroll，scroll事件可能会频繁触发，需要节流
+  // 判断方法：Element.getBoundingClientRect() 返回元素大小，相对视窗的位置信息[元素左上角和视窗左上角]
+  async function getData() {
+    const res = await xml_fn({
+      method: 'GET',
+      url: '/getData',
+      params: '',
+      dataType: 'JSON'
+    }).catch(e => { console.log('httpE', e) })
+  }
+  getData()
 </script>
+
 </html>
 <style>
-#container{
+  #container {
     width: 100%;
     background-color: aquamarine;
-}
-.pic-div{
+  }
+
+  .pic-div {
     width: 25%;
     padding: 5px;
     height: 300px;
-}
-.pic{
+  }
+
+  .pic {
     border: 1px solid black;
     width: 100%;
     height: 100%;
-}
+  }
 </style>
