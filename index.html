@@ -9,16 +9,16 @@
 </head>
 
 <body>
-  <div id="container">
-    <img class="cut-img" src="http://127.0.0.1:3000/static/picture/0?path=default.png" title="占位图" />
+  <div>
+    <button onclick="playContainer1()">监听scroll实现</button>
+    <button onclick="playContainer2()">img的loading属性实现</button>
+    <button onclick="playContainer3()">IntersectionObserver实现</button>
   </div>
+  <div id="container"></div>
 </body>
 <script type="module">
   import { xml_fn } from './xml.js'
-  // 旧方法实现：
-  // 原理：监听图片资源的容器是否出现在视口中
-  // 监听事件：scroll，scroll事件可能会频繁触发，需要节流
-  // 判断方法：Element.getBoundingClientRect() 返回元素大小，相对视窗的位置信息[元素左上角和视窗左上角]
+  let num = 100
   async function getData() {
     const res = await xml_fn({
       method: 'GET',
@@ -26,31 +26,102 @@
       params: '',
       dataType: 'JSON'
     }).catch(e => { console.log('httpE', e) })
-    console.log('res',res)
     const container = document.querySelector('#container')
-    console.log(container)
     let arr = []
-    res.forEach(item => {
+    res.forEach((item) => {
       const img = document.createElement('img')
       img.src = 'http://127.0.0.1:3000/static/picture/0?path=default.png'
+      img.setAttribute('data-src', `http://127.0.0.1:3000/static/picture/${num++}?path=${item}`)
       img.className = 'cut-img'
       arr.push(img)
       container.appendChild(img)
     })
-
   }
-  getData()
+
+  // 旧方法实现：
+  // 原理：监听图片资源的容器是否出现在视口中
+  // 监听事件：scroll，scroll事件可能会频繁触发，需要节流
+  // 判断方法：Element.getBoundingClientRect() 返回元素大小，相对视窗的位置信息[元素左上角和视窗左上角]
+  window.playContainer1 = async function () {
+    container.innerHTML = ''
+    await getData()
+    const imgList = document.querySelectorAll('img')
+    // 具体实现
+    let lazyload = () => {
+      // 浏览器视窗高度
+      const viewPortHeight = window.innerHeight || document.documentElement.clientHeight
+      imgList.forEach(item => {
+        // 元素距离可视区域高度
+        const imgTopHight = item.getBoundingClientRect().top
+        if (viewPortHeight - imgTopHight >= 0) {
+          item.src = item.getAttribute('data-src')
+        }
+      })
+    }
+    // 首屏加载
+    lazyload()
+    // 节流
+
+    let throttle = (fn, time) => {
+      let bool = true
+      return function () {
+        if (!bool) return
+        bool = false
+        setTimeout(function () {
+          fn()
+          bool = true
+        }, time)
+      }
+    }
+    // 监听scroll
+    window.addEventListener('scroll', throttle(lazyload, 500))
+    // 监听浏览器窗口大小改变
+    window.addEventListener('resize', throttle(lazyload), 500)
+  }
+
+  // loading属性实现 lazy:懒加载  eager:立即加载  需要浏览器支持
+  window.playContainer2 = async function () {
+    container.innerHTML = ''
+    await getData()
+    const imgList = document.querySelectorAll('img')
+    imgList.forEach(item => {
+      item.setAttribute('loading', 'lazy')
+      item.src = item.getAttribute('data-src')
+    })
+  }
+
+  // IntersectionObserver实现
+  window.playContainer3 = async function () {
+    container.innerHTML = ''
+    await getData()
+    const imgList = document.querySelectorAll('img')
+    // 具体实现
+    let lazyload = entries => {
+      // entries所有 被监听元素与root元素相交情况信息 的数组
+      entries.forEach(item => {
+        if (item.isIntersecting) { // 是否在root 
+          item.target.src = item.target.getAttribute('data-src')
+        }
+      })
+    }
+    const io = new IntersectionObserver(lazyload, {
+      root: null // 祖先元素 null为顶级视窗
+    })
+    // 监听所有img
+    imgList.forEach(item => io.observe(item))
+  }
 </script>
 
 </html>
 <style>
   #container {
-    display: flex ;
+    display: flex;
     flex-wrap: wrap;
     width: 100vw;
     background-color: aquamarine;
   }
-  .cut-img{
+
+  .cut-img {
     width: 15vw;
     height: 300px;
     border: 2.5vw solid white;

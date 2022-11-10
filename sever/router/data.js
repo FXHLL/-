@@ -2,7 +2,6 @@ const express = require('express')
 const router = express()
 
 router.get('/picData',(req,res) => {
-  console.log('传参',req.params)
   let arr = []
   for(let i=0;i<50;i++){
     arr.push('goods1.png')
